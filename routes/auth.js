@@ -1,12 +1,20 @@
 // ./routes/auth.js
-const router = require('express').Router();
-const bcrypt = require('bcrypt');
-const jwt = require('jsonwebtoken');
-const crypto = require('crypto');
-const pool = require('../db');
-const { sendActivationEmail } = require('../services/email.services');
+import express from 'express';
+import bcrypt from 'bcrypt';
+import jwt from 'jsonwebtoken';
+import crypto from 'crypto';
+import pool from '../db.js';
 
-// SIGN UP
+import {
+  sendActivationEmail,
+  sendResetPasswordEmail,
+} from '../services/email.services.js';
+
+const router = express.Router();
+
+/* =========================
+   SIGN UP
+========================= */
 router.post('/signup', async (req, res) => {
   try {
     const { username, email, password } = req.body;
@@ -21,7 +29,6 @@ router.post('/signup', async (req, res) => {
     }
 
     const hashedPassword = await bcrypt.hash(password, 10);
-
     const activationToken = crypto.randomUUID();
 
     await pool.query(
@@ -33,7 +40,7 @@ router.post('/signup', async (req, res) => {
     await sendActivationEmail(email, activationToken);
 
     res.status(201).json({
-      message: 'Перевірте пошту для активації акаунту'
+      message: 'Перевірте пошту для активації акаунту',
     });
   } catch (e) {
     console.error(e);
@@ -41,6 +48,9 @@ router.post('/signup', async (req, res) => {
   }
 });
 
+/* =========================
+   ACTIVATE
+========================= */
 router.get('/activate/:token', async (req, res) => {
   try {
     const { token } = req.params;
@@ -51,10 +61,7 @@ router.get('/activate/:token', async (req, res) => {
     );
 
     if (result.rows.length === 0) {
-      return res.status(400).json({
-        code: 'INVALID_TOKEN',
-        message: 'Invalid or expired link'
-      });
+      return res.status(400).json({ message: 'Invalid token' });
     }
 
     await pool.query(
@@ -64,16 +71,15 @@ router.get('/activate/:token', async (req, res) => {
       [token]
     );
 
-    // ⛔ ПОКИ НЕ РОБИ redirect (див. нижче)
     res.json({ message: 'Account activated' });
-
   } catch (e) {
-    console.error(e);
     res.status(500).json({ message: 'Server error' });
   }
 });
 
-// LOGIN
+/* =========================
+   LOGIN
+========================= */
 router.post('/login', async (req, res) => {
   try {
     const { email, password } = req.body;
@@ -89,10 +95,9 @@ router.post('/login', async (req, res) => {
 
     const user = result.rows[0];
 
-    // 🔒 ПЕРЕВІРКА АКТИВАЦІЇ
     if (!user.is_activated) {
       return res.status(403).json({
-        message: 'Активуйте акаунт через email'
+        message: 'Активуйте акаунт через email',
       });
     }
 
@@ -112,14 +117,116 @@ router.post('/login', async (req, res) => {
       user: {
         id: user.id,
         username: user.username,
-        email: user.email
-      }
+        email: user.email,
+      },
     });
   } catch (e) {
     res.status(500).json({ message: 'Server error' });
   }
 });
 
-console.log('DB:', process.env.DB_NAME);
+/* =========================
+   RESET PASSWORD
+========================= */
+router.post('/reset-password/:token', async (req, res) => {
+  try {
+    const { token } = req.params;
+    const { password } = req.body;
 
-module.exports = router;
+    if (!password) {
+      return res.status(400).json({
+        message: 'Пароль обовʼязковий',
+      });
+    }
+
+    const result = await pool.query(
+      `
+      SELECT id FROM users
+      WHERE reset_password_token = $1
+        AND reset_password_expires > NOW()
+      `,
+      [token]
+    );
+
+    if (result.rows.length === 0) {
+      return res.status(400).json({
+        message: 'Посилання недійсне або застаріле',
+      });
+    }
+
+    const hashedPassword = await bcrypt.hash(password, 10);
+
+    await pool.query(
+      `
+      UPDATE users
+      SET password = $1,
+          reset_password_token = NULL,
+          reset_password_expires = NULL
+      WHERE id = $2
+      `,
+      [hashedPassword, result.rows[0].id]
+    );
+
+    res.json({
+      message: 'Пароль успішно змінено',
+    });
+  } catch (e) {
+    console.error(e);
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
+/* =========================
+   FORGOT PASSWORD
+========================= */
+router.post('/forgot-password', async (req, res) => {
+  try {
+    const { email } = req.body;
+
+    console.log('FORGOT PASSWORD EMAIL:', email);
+
+    const result = await pool.query(
+      'SELECT id FROM users WHERE email = $1',
+      [email]
+    );
+
+    // ❗ Безпека: не кажемо, чи існує email
+    if (result.rows.length === 0) {
+      return res.json({
+        message: 'Якщо такий email існує, ми надішлемо лист',
+      });
+    }
+
+    const token = crypto.randomUUID();
+    const expires = new Date(Date.now() + 1000 * 60 * 15); // 15 хв
+
+    await pool.query(
+      `
+      UPDATE users
+      SET reset_password_token = $1,
+          reset_password_expires = $2
+      WHERE email = $3
+      `,
+      [token, expires, email]
+    );
+
+    // 🔥 ВАЖЛИВО: email існує ТУТ
+    try {
+      await sendResetPasswordEmail(email, token);
+    } catch (err) {
+      console.error('EMAIL ERROR:', err);
+    }
+
+    res.json({
+      message: 'Якщо такий email існує, ми надішлемо лист',
+    });
+  } catch (e) {
+    console.error('FORGOT PASSWORD ERROR:', e);
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
+
+
+
+export default router;
