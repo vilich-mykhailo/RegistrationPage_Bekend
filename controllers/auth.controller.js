@@ -1,3 +1,4 @@
+// ./auth.controller.js
 import { user } from "../models/user.js";
 
 export const activate = async (req, res) => {
