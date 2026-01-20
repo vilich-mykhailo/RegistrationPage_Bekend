@@ -3,8 +3,6 @@ import jwt from "jsonwebtoken";
 export default function authMiddleware(req, res, next) {
   const authHeader = req.headers.authorization;
 
-  console.log("AUTH HEADER:", authHeader); // 👈 ДОДАЙ ДЛЯ ДЕБАГУ
-
   if (!authHeader) {
     return res.status(401).json({ message: "Немає токена" });
   }
@@ -13,10 +11,12 @@ export default function authMiddleware(req, res, next) {
 
   try {
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
-    req.user = decoded; // { id: ... }
+
+    // 🔥 ЗБЕРІГАЄМО ЯК req.user
+    req.user = { id: decoded.id };
+
     next();
   } catch (e) {
-    console.error("JWT ERROR:", e);
-    return res.status(401).json({ message: "Недійсний токен" });
+    return res.status(401).json({ message: "Невалідний токен" });
   }
 }
