@@ -98,7 +98,7 @@ router.post("/login", async (req, res) => {
     ]);
 
     if (result.rows.length === 0) {
-      return res.status(400).json({ message: "Невірний email або пароль" });
+      return res.status(400).json({ message: "EMAIL_NOT_FOUND" });
     }
 
     const user = result.rows[0];
@@ -109,7 +109,7 @@ router.post("/login", async (req, res) => {
 
     const isMatch = await bcrypt.compare(password, user.password);
     if (!isMatch) {
-      return res.status(400).json({ message: "Невірний email або пароль" });
+      return res.status(400).json({ message: "WRONG_PASSWORD" });
     }
 
     const token = jwt.sign({ id: user.id }, process.env.JWT_SECRET, {
@@ -139,13 +139,14 @@ router.post("/forgot-password", async (req, res) => {
   try {
     const { email } = req.body;
 
-    const result = await pool.query("SELECT id FROM users WHERE email = $1", [
-      email,
-    ]);
+    const result = await pool.query(
+      "SELECT id FROM users WHERE email = $1",
+      [email]
+    );
 
-    // security: always same response
+    // 🔴 ЯВНО кажемо, що пошти нема
     if (result.rows.length === 0) {
-      return res.json({ message: "Якщо такий email існує, ми надішлемо лист" });
+      return res.status(400).json({ message: "EMAIL_NOT_FOUND" });
     }
 
     const token = crypto.randomUUID();
@@ -156,15 +157,15 @@ router.post("/forgot-password", async (req, res) => {
        SET reset_password_token = $1,
            reset_password_expires = $2
        WHERE email = $3`,
-      [token, expires, email],
+      [token, expires, email]
     );
 
     await sendResetPasswordEmail(email, token);
 
-    res.json({ message: "Якщо такий email існує, ми надішлемо лист" });
+    res.json({ message: "EMAIL_SENT" });
   } catch (e) {
     console.error("FORGOT PASSWORD ERROR:", e);
-    res.status(500).json({ message: "Server error" });
+    res.status(500).json({ message: "SERVER_ERROR" });
   }
 });
 
@@ -309,9 +310,9 @@ router.get("/confirm-change-password/:token", async (req, res) => {
     );
 
     if (result.rows.length === 0) {
-      return res
-        .status(400)
-        .json({ message: "Посилання недійсне або застаріле" });
+      return res.redirect(
+        `${process.env.CLIENT_HOST}/password-changed-invalid`
+      );
     }
 
     await pool.query(
@@ -324,20 +325,27 @@ router.get("/confirm-change-password/:token", async (req, res) => {
       [result.rows[0].id],
     );
 
-    res.redirect(`${process.env.CLIENT_HOST}password-changed-success`);
+    res.redirect(`${process.env.CLIENT_HOST}/password-changed-success`);
   } catch (e) {
     console.error(e);
-    res.status(500).json({ message: "Server error" });
+    res.redirect(`${process.env.CLIENT_HOST}/password-changed-invalid`);
   }
 });
+
 
 /* =========================
    CHANGE EMAIL (EMAIL CONFIRM FLOW)
 ========================= */
 router.post("/request-change-email", authMiddleware, async (req, res) => {
   try {
+    console.log("REQ.USER:", req.user);
+    console.log("REQ.BODY:", req.body);
+
     const { newEmail, confirmEmail } = req.body;
-    const userId = req.user.id;
+    const userId = req.user?.id;
+
+    console.log("USER ID:", userId);
+
 
     if (!newEmail || newEmail !== confirmEmail) {
       return res.status(400).json({ message: "Пошти не співпадають" });
@@ -365,13 +373,41 @@ router.post("/request-change-email", authMiddleware, async (req, res) => {
 
     await sendChangeEmailEmail(newEmail, token);
 
-    res.json({ message: "Підтвердження надіслано на нову пошту" });
+    res.json({ message: "EMAIL_SENT" });
   } catch (e) {
     console.error(e);
     res.status(500).json({ message: "Server error" });
   }
 });
 
+/* =========================
+   CHECK RESET TOKEN (PRECHECK)
+========================= */
+router.get("/check-reset-token/:token", async (req, res) => {
+  try {
+    const { token } = req.params;
+
+    const result = await pool.query(
+      `SELECT id FROM users
+       WHERE reset_password_token = $1
+         AND reset_password_expires > NOW()`,
+      [token],
+    );
+
+    if (result.rows.length === 0) {
+      return res.status(400).json({ valid: false });
+    }
+
+    res.json({ valid: true });
+  } catch (e) {
+    console.error("CHECK RESET TOKEN ERROR:", e);
+    res.status(500).json({ valid: false });
+  }
+});
+
+/* =========================
+   ЗМІНА ПОШТИ
+========================= */
 router.get("/confirm-change-email/:token", async (req, res) => {
   try {
     const result = await pool.query(
@@ -382,9 +418,9 @@ router.get("/confirm-change-email/:token", async (req, res) => {
     );
 
     if (result.rows.length === 0) {
-      return res
-        .status(400)
-        .json({ message: "Посилання недійсне або застаріле" });
+      return res.redirect(
+        `${process.env.CLIENT_HOST}/email-changed-invalid`
+      );
     }
 
     const user = result.rows[0];
@@ -399,10 +435,11 @@ router.get("/confirm-change-email/:token", async (req, res) => {
       [user.pending_email, user.id],
     );
 
-    res.redirect(`${process.env.CLIENT_HOST}email-changed-success`);
+    // 🔥 КОРЕКТНИЙ REDIRECT
+    res.redirect(`${process.env.CLIENT_HOST}/email-changed-success`);
   } catch (e) {
     console.error(e);
-    res.status(500).json({ message: "Server error" });
+    res.redirect(`${process.env.CLIENT_HOST}/email-changed-invalid`);
   }
 });
 
