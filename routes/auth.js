@@ -231,7 +231,7 @@ router.get("/profile", authMiddleware, async (req, res) => {
     console.error(e);
     res.status(500).json({ message: "Server error" });
   }
-});
+}); 
 
 /* =========================
    UPDATE PROFILE
