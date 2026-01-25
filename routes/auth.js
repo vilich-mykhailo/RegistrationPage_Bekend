@@ -20,7 +20,9 @@ const router = express.Router();
 ========================= */
 router.post("/signup", async (req, res) => {
   try {
-    const { username, email, password } = req.body;
+    const { email, password } = req.body;
+    const emailClean = email.trim().toLowerCase();
+    const username = emailClean.split("@")[0];
 
     if (!username || !email || !password) {
       return res.status(400).json({ message: "Усі поля обовʼязкові" });
@@ -139,10 +141,9 @@ router.post("/forgot-password", async (req, res) => {
   try {
     const { email } = req.body;
 
-    const result = await pool.query(
-      "SELECT id FROM users WHERE email = $1",
-      [email]
-    );
+    const result = await pool.query("SELECT id FROM users WHERE email = $1", [
+      email,
+    ]);
 
     // 🔴 ЯВНО кажемо, що пошти нема
     if (result.rows.length === 0) {
@@ -157,7 +158,7 @@ router.post("/forgot-password", async (req, res) => {
        SET reset_password_token = $1,
            reset_password_expires = $2
        WHERE email = $3`,
-      [token, expires, email]
+      [token, expires, email],
     );
 
     await sendResetPasswordEmail(email, token);
@@ -219,7 +220,8 @@ router.get("/profile", authMiddleware, async (req, res) => {
   try {
     const result = await pool.query(
       `SELECT id, username, email, first_name, last_name, phone, address,
-              TO_CHAR(birth_date, 'YYYY-MM-DD') AS birth_date, gender
+       TO_CHAR(birth_date, 'YYYY-MM-DD') AS birth_date, gender
+
        FROM users WHERE id = $1`,
       [req.user.id],
     );
@@ -236,16 +238,35 @@ router.get("/profile", authMiddleware, async (req, res) => {
 ========================= */
 router.put("/profile", authMiddleware, async (req, res) => {
   try {
-    const { first_name, last_name, phone, address, birth_date, gender } =
-      req.body;
+    const {
+      first_name,
+      last_name,
+      phone,
+      address,
+      birth_date,
+      gender,
+    } = req.body;
 
     const result = await pool.query(
       `UPDATE users
-       SET first_name=$1, last_name=$2, phone=$3, address=$4, birth_date=$5, gender=$6
-       WHERE id=$7
-       RETURNING id, username, email, first_name, last_name, phone, address,
+       SET first_name = $1,
+           last_name  = $2,
+           phone      = $3,
+           address    = $4,
+           birth_date = $5,
+           gender     = $6
+       WHERE id = $7
+       RETURNING id, first_name, last_name, email, phone, address,
                  TO_CHAR(birth_date, 'YYYY-MM-DD') AS birth_date, gender`,
-      [first_name, last_name, phone, address, birth_date, gender, req.user.id],
+      [
+        first_name,
+        last_name,
+        phone,
+        address,
+        birth_date,
+        gender,
+        req.user.id,
+      ],
     );
 
     res.json(result.rows[0]);
@@ -254,6 +275,7 @@ router.put("/profile", authMiddleware, async (req, res) => {
     res.status(500).json({ message: "Server error" });
   }
 });
+
 
 /* =========================
    CHANGE PASSWORD (EMAIL CONFIRM FLOW — FIXED)
@@ -311,7 +333,7 @@ router.get("/confirm-change-password/:token", async (req, res) => {
 
     if (result.rows.length === 0) {
       return res.redirect(
-        `${process.env.CLIENT_HOST}/password-changed-invalid`
+        `${process.env.CLIENT_HOST}/password-changed-invalid`,
       );
     }
 
@@ -332,7 +354,6 @@ router.get("/confirm-change-password/:token", async (req, res) => {
   }
 });
 
-
 /* =========================
    CHANGE EMAIL (EMAIL CONFIRM FLOW)
 ========================= */
@@ -345,7 +366,6 @@ router.post("/request-change-email", authMiddleware, async (req, res) => {
     const userId = req.user?.id;
 
     console.log("USER ID:", userId);
-
 
     if (!newEmail || newEmail !== confirmEmail) {
       return res.status(400).json({ message: "Пошти не співпадають" });
@@ -418,9 +438,7 @@ router.get("/confirm-change-email/:token", async (req, res) => {
     );
 
     if (result.rows.length === 0) {
-      return res.redirect(
-        `${process.env.CLIENT_HOST}/email-changed-invalid`
-      );
+      return res.redirect(`${process.env.CLIENT_HOST}/email-changed-invalid`);
     }
 
     const user = result.rows[0];
