@@ -362,25 +362,57 @@ router.post("/request-change-email", authMiddleware, async (req, res) => {
     console.log("REQ.USER:", req.user);
     console.log("REQ.BODY:", req.body);
 
-    const { newEmail, confirmEmail } = req.body;
+    const { newEmail, confirmEmail, password } = req.body;   // 🔥 ДОДАЛИ ПАРОЛЬ
     const userId = req.user?.id;
 
-    console.log("USER ID:", userId);
+    if (!userId) {
+      return res.status(401).json({ message: "Неавторизовано" });
+    }
 
-    if (!newEmail || newEmail !== confirmEmail) {
+    // 🔹 Перевірка наявності полів
+    if (!password) {
+      return res.status(400).json({ message: "Введіть пароль" });
+    }
+
+    if (!newEmail || !confirmEmail) {
+      return res.status(400).json({ message: "Заповніть всі поля" });
+    }
+
+    if (newEmail !== confirmEmail) {
       return res.status(400).json({ message: "Пошти не співпадають" });
     }
 
-    const exists = await pool.query("SELECT id FROM users WHERE email = $1", [
-      newEmail,
-    ]);
+    // 🔹 Отримуємо користувача з БД
+    const userResult = await pool.query(
+      "SELECT id, email, password FROM users WHERE id = $1",
+      [userId],
+    );
+
+    if (userResult.rows.length === 0) {
+      return res.status(404).json({ message: "Користувача не знайдено" });
+    }
+
+    const user = userResult.rows[0];
+
+    // 🔐 ПЕРЕВІРКА ПАРОЛЯ
+    const isMatch = await bcrypt.compare(password, user.password);
+    if (!isMatch) {
+      return res.status(400).json({ message: "Невірний пароль" });
+    }
+
+    // 🔹 Перевірка, чи нова пошта вже зайнята
+    const exists = await pool.query(
+      "SELECT id FROM users WHERE email = $1",
+      [newEmail],
+    );
 
     if (exists.rows.length > 0) {
       return res.status(400).json({ message: "Ця пошта вже використовується" });
     }
 
+    // 🔹 Генеруємо токен підтвердження
     const token = crypto.randomUUID();
-    const expires = new Date(Date.now() + 1000 * 60 * 15);
+    const expires = new Date(Date.now() + 1000 * 60 * 15); // 15 хв
 
     await pool.query(
       `UPDATE users
@@ -391,14 +423,20 @@ router.post("/request-change-email", authMiddleware, async (req, res) => {
       [newEmail, token, expires, userId],
     );
 
+    // 🔥 Надсилаємо лист на НОВУ пошту
     await sendChangeEmailEmail(newEmail, token);
+
+    // 🔔 (опціонально, але дуже рекомендую)
+    // Надіслати лист на СТАРУ пошту, що хтось намагається змінити email
+    // await sendOldEmailNotification(user.email);
 
     res.json({ message: "EMAIL_SENT" });
   } catch (e) {
-    console.error(e);
+    console.error("CHANGE EMAIL ERROR:", e);
     res.status(500).json({ message: "Server error" });
   }
 });
+
 
 /* =========================
    CHECK RESET TOKEN (PRECHECK)
