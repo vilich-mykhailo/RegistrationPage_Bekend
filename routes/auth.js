@@ -425,7 +425,6 @@ router.post("/request-change-email", authMiddleware, async (req, res) => {
 
     // 🔥 Надсилаємо лист на НОВУ пошту
     await sendChangeEmailEmail(newEmail, token);
-
     // 🔔 (опціонально, але дуже рекомендую)
     // Надіслати лист на СТАРУ пошту, що хтось намагається змінити email
     // await sendOldEmailNotification(user.email);
