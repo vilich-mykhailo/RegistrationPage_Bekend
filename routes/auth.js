@@ -433,7 +433,7 @@ router.post("/request-change-email", authMiddleware, async (req, res) => {
   } catch (e) {
     console.error("CHANGE EMAIL ERROR:", e);
     res.status(500).json({ message: "Server error" });
-  }
+  } 
 });
 
 
