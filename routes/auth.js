@@ -294,7 +294,7 @@ router.post("/request-change-password", authMiddleware, async (req, res) => {
 
     const isMatch = await bcrypt.compare(oldPassword, user.password);
     if (!isMatch) {
-      return res.status(400).json({ message: "Старий пароль неправильний" });
+      return res.status(400).json({ message: "Невірний поточний пароль" });
     }
 
     const token = crypto.randomUUID();
