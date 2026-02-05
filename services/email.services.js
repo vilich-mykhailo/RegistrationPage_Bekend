@@ -29,70 +29,78 @@ export function sendActivationEmail(email, token) {
   return send({
     to: email,
     subject: "🔐 Активація акаунту",
-html: `
-    <div style="
-      background-color:#f9fafb;
-      padding:40px 0;
-      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif;
+    html: `
+<div style="
+  background-color:#0e0f0d;
+  padding:40px 0;
+  font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Arial,sans-serif;
+">
+  <div style="
+    max-width:520px;
+    margin:0 auto;
+    background:rgba(255,255,255,0.04);
+    border-radius:22px;
+    padding:36px 32px;
+    text-align:center;
+    border:1px solid rgba(155,207,106,0.25);
+    box-shadow:
+      0 20px 60px rgba(0,0,0,0.65),
+      inset 0 0 0 1px rgba(255,255,255,0.03);
+  ">
+    <h2 style="
+      color: #ffffff;
+      margin:0 0 14px;
+      font-size:24px;
+      font-weight:600;
     ">
-      <div style="
-        max-width:520px;
-        margin:0 auto;
-        background:#ffffff;
-        border-radius:12px;
-        padding:32px 28px;
-        box-shadow:0 10px 25px rgba(0,0,0,0.05);
-        color:#111827;
-        text-align:center;
-      ">
-        <h2 style="
-          margin:0 0 12px;
-          font-size:22px;
+      Активація акаунту 🔓
+    </h2>
+
+    <p style="
+      margin:0 0 18px;
+      color:rgba(255,255,255,0.7);
+      font-size:14px;
+    ">
+      Щоб активувати акаунт, натисніть кнопку нижче
+    </p>
+
+    <div style="margin:26px 0;">
+      <a
+        href="${link}"
+        style="
+          display:inline-block;
+          padding:14px 32px;
+          background:linear-gradient(135deg,#9bcf6a,#7fbf4a);
+          color:#111;
+          text-decoration:none;
+          border-radius:999px;
           font-weight:600;
-        ">
-        Активація акаунту 🔓
-        </h2>
-
-        <p style="margin:0 0 16px; color:#374151;">
-          Щоб активувати акаунт, натисніть кнопку нижче:
-        </p>
-
-        <div style="margin:24px 0;">
-          <a
-            href="${link}"
-            style="
-              display:inline-block;
-              padding:14px 28px;
-              background:linear-gradient(135deg, #2563eb, #1d4ed8);
-              color:#ffffff;
-              text-decoration:none;
-              border-radius:10px;
-              font-weight:600;
-              font-size:15px;
-            "
-          >
-            АКТИВУВАТИ АКАУНТ
-          </a>
-        </div>
-
-        <p style="
-          margin:24px 0 8px;
-          font-size:11px;
-          color:#6b7280;
-        ">
-        ⌛ Посилання дійсне протягом <strong>15 хвилин</strong>.⌛
-        </p>
-
-        <p style="
-          margin:0;
-          font-size:10px;
-          color:#9ca3af;
-        ">
-          Якщо ви не створювали акаунт — просто проігноруйте цей лист.
-        </p>
-      </div>
+          font-size:14px;
+          letter-spacing:0.04em;
+        "
+      >
+        АКТИВУВАТИ АКАУНТ
+      </a>
     </div>
-  `,
+
+    <p style="
+      margin:22px 0 6px;
+      font-size:12px;
+      color:rgba(255,255,255,0.55);
+    ">
+      ⌛ Посилання дійсне протягом <b style="color:#9bcf6a;">15 хвилин</b>
+    </p>
+
+    <p style="
+      margin:0;
+      font-size:11px;
+      color:rgba(255,255,255,0.4);
+    ">
+      Якщо ви не створювали акаунт — просто проігноруйте цей лист
+    </p>
+  </div>
+</div>
+`,
   });
 }
 
@@ -105,7 +113,7 @@ export function sendResetPasswordEmail(email, token) {
   return send({
     to: email,
     subject: "🔑 Відновлення пароля",
-html: `
+    html: `
     <div style="
       background-color:#f9fafb;
       padding:40px 0;
@@ -118,10 +126,11 @@ html: `
         border-radius:12px;
         padding:32px 28px;
         box-shadow:0 10px 25px rgba(0,0,0,0.05);
-        color:#111827;
+        color: #ffffff;
         text-align:center;
       ">
-        <h2 style="
+    <h2 style="
+      color: #ffffff;
           margin:0 0 12px;
           font-size:22px;
           font-weight:600;
@@ -184,77 +193,86 @@ export const sendChangePasswordEmail = async (email, token) => {
   return send({
     to: email,
     subject: "🔐 Підтвердження зміни пароля",
-html: `
-    <div style="
-      background-color:#f9fafb;
-      padding:40px 0;
-      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif;
+    html: `
+<div style="
+  background-color:#0e0f0d;
+  padding:40px 0;
+  font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Arial,sans-serif;
+">
+  <div style="
+    max-width:520px;
+    margin:0 auto;
+    background:rgba(255,255,255,0.04);
+    border-radius:22px;
+    padding:36px 32px;
+    text-align:center;
+    border:1px solid rgba(155,207,106,0.25);
+    box-shadow:
+      0 20px 60px rgba(0,0,0,0.65),
+      inset 0 0 0 1px rgba(255,255,255,0.03);
+  ">
+    <h2 style="
+      color: #ffffff;
+      margin:0 0 14px;
+      font-size:24px;
+      font-weight:600;
     ">
-      <div style="
-        max-width:520px;
-        margin:0 auto;
-        background:#ffffff;
-        border-radius:12px;
-        padding:32px 28px;
-        box-shadow:0 10px 25px rgba(0,0,0,0.05);
-        color:#111827;
-        text-align:center;
-      ">
-        <h2 style="
-          margin:0 0 12px;
-          font-size:22px;
+      Відновлення доступу 🔑
+    </h2>
+
+    <p style="
+      margin:0 0 18px;
+      color:rgba(255,255,255,0.7);
+      font-size:14px;
+    ">
+      Ми отримали запит на відновлення доступу до вашого акаунту.
+    </p>
+
+    <p style="
+      margin:0 0 18px;
+      color:rgba(255,255,255,0.7);
+      font-size:14px;
+    ">
+      Щоб встановити новий пароль, натисніть кнопку нижче:
+    </p>
+
+    <div style="margin:26px 0;">
+      <a
+        href="${link}"
+        style="
+          display:inline-block;
+          padding:14px 32px;
+          background:linear-gradient(135deg,#9bcf6a,#7fbf4a);
+          color:#111;
+          text-decoration:none;
+          border-radius:999px;
           font-weight:600;
-        ">
-        Підтвердження зміни пароля 🔐
-        </h2>
-
-        <p style="
-        margin:0 0 12px;
-        font-size:18px;
-        color:#374151;">
-          Ви запросили зміну пароля.
-        </p>
-
-        <p style="margin:0 0 16px; color:#374151;">
-         Щоб підтвердити зміну пароля, натисніть кнопку нижче:
-        </p>
-
-        <div style="margin:24px 0;">
-          <a
-            href="${link}"
-            style="
-              display:inline-block;
-              padding:14px 28px;
-              background:linear-gradient(135deg, #2563eb, #1d4ed8);
-              color:#ffffff;
-              text-decoration:none;
-              border-radius:10px;
-              font-weight:600;
-              font-size:15px;
-            "
-          >
-            ЗМІНИТИ ПАРОЛЬ
-          </a>
-        </div>
-
-        <p style="
-          margin:24px 0 8px;
-          font-size:11px;
-          color:#6b7280;
-        ">
-        ⌛ Посилання дійсне протягом <strong>15 хвилин</strong>.⌛
-        </p>
-
-        <p style="
-          margin:0;
-          font-size:10px;
-          color:#9ca3af;
-        ">
-          Якщо ви не надсилали цей запит — просто проігноруйте лист.
-        </p>
-      </div>
+          font-size:14px;
+          letter-spacing:0.04em;
+        "
+      >
+        СКИНУТИ ПАРОЛЬ
+      </a>
     </div>
-  `,
+
+    <p style="
+      margin:22px 0 6px;
+      font-size:12px;
+      color:rgba(255,255,255,0.55);
+    ">
+      ⌛ Посилання дійсне протягом <b style="color:#9bcf6a;">15 хвилин</b>
+    </p>
+
+    <p style="
+      margin:0;
+      font-size:11px;
+      color:rgba(255,255,255,0.4);
+    ">
+      Якщо ви не надсилали цей запит — просто проігноруйте цей лист.
+    </p>
+  </div>
+</div>
+`,
   });
 };
 
@@ -265,75 +283,83 @@ export const sendChangeEmailEmail = async (email, token) => {
     to: email,
     subject: "📨 Підтвердження зміни електронної пошти",
     html: `
-    <div style="
-      background-color:#f9fafb;
-      padding:40px 0;
-      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif;
+<div style="
+  background-color:#0e0f0d;
+  padding:40px 0;
+  font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Arial,sans-serif;
+">
+  <div style="
+    max-width:520px;
+    margin:0 auto;
+    background:rgba(255,255,255,0.04);
+    border-radius:22px;
+    padding:36px 32px;
+    text-align:center;
+    border:1px solid rgba(155,207,106,0.25);
+    box-shadow:
+      0 20px 60px rgba(0,0,0,0.65),
+      inset 0 0 0 1px rgba(255,255,255,0.03);
+  ">
+    <h2 style="
+      margin:0 0 14px;
+      font-size:24px;
+      font-weight:600;
     ">
-      <div style="
-        max-width:520px;
-        margin:0 auto;
-        background:#ffffff;
-        border-radius:12px;
-        padding:32px 28px;
-        box-shadow:0 10px 25px rgba(0,0,0,0.05);
-        color:#111827;
-        text-align:center;
-      ">
-        <h2 style="
-          margin:0 0 12px;
-          font-size:22px;
+      Підтвердження нової пошти ✉️
+    </h2>
+
+    <p style="
+      margin:0 0 18px;
+      color:rgba(255,255,255,0.7);
+      font-size:14px;
+    ">
+      Ви запросили зміну електронної пошти для свого акаунту.
+    </p>
+
+    <p style="
+      margin:0 0 18px;
+      color:rgba(255,255,255,0.7);
+      font-size:14px;
+    ">
+      Щоб підтвердити нову адресу, натисніть кнопку нижче:
+    </p>
+
+    <div style="margin:26px 0;">
+      <a
+        href="${link}"
+        style="
+          display:inline-block;
+          padding:14px 32px;
+          background:linear-gradient(135deg, #9bcf6a, #7fbf4a);
+          color:#111;
+          text-decoration:none;
+          border-radius:999px;
           font-weight:600;
-        ">
-        ✉️ Підтвердження нової електронної пошти ✉️
-        </h2>
-
-        <p style="
-        margin:0 0 12px;
-        font-size:18px;
-        color:#374151;">
-          Ви запросили <strong>зміну електронної пошти</strong> для свого акаунта.
-        </p>
-
-        <p style="margin:0 0 16px; color:#374151;">
-          Щоб підтвердити нову адресу, натисніть кнопку нижче:
-        </p>
-
-        <div style="margin:24px 0;">
-          <a
-            href="${link}"
-            style="
-              display:inline-block;
-              padding:14px 28px;
-              background:linear-gradient(135deg, #2563eb, #1d4ed8);
-              color:#ffffff;
-              text-decoration:none;
-              border-radius:10px;
-              font-weight:600;
-              font-size:15px;
-            "
-          >
-            ПІДТВЕРДИТИ ПОШТУ
-          </a>
-        </div>
-
-        <p style="
-          margin:24px 0 8px;
-          font-size:11px;
-          color:#6b7280;
-        ">
-        ⌛ Посилання дійсне протягом <strong>15 хвилин</strong>.⌛
-        </p>
-
-        <p style="
-          margin:0;
-          font-size:10px;
-          color:#9ca3af;
-        ">
-          Якщо ви не надсилали цей запит — просто проігноруйте цей лист.
-        </p>
-      </div>
+          font-size:14px;
+          letter-spacing:0.04em;
+        "
+      >
+        ПІДТВЕРДИТИ ПОШТУ
+      </a>
     </div>
-  `,
+
+    <p style="
+      margin:22px 0 6px;
+      font-size:12px;
+      color:rgba(255,255,255,0.55);
+    ">
+      ⌛ Посилання дійсне протягом <b style="color:#9bcf6a;">15 хвилин</b>
+    </p>
+
+    <p style="
+      margin:0;
+      font-size:11px;
+      color:rgba(255,255,255,0.4);
+    ">
+      Якщо ви не надсилали цей запит — просто проігноруйте цей лист.
+    </p>
+  </div>
+</div>
+`,
   });
 };
