@@ -1,10 +1,14 @@
-// ./routes/auth.js (FIXED & PRODUCTION-READY)
+// ./routes/auth.js 
 import express from "express";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 import crypto from "crypto";
 import pool from "../db.js";
 import authMiddleware from "../middleware/auth.middleware.js";
+import {
+  getFavourites,
+  toggleFavourite,
+} from "./favourites.controller.js";
 
 import {
   sendActivationEmail,
@@ -497,5 +501,11 @@ router.get("/confirm-change-email/:token", async (req, res) => {
     res.redirect(`${process.env.CLIENT_HOST}/email-changed-invalid`);
   }
 });
+
+/* =========================
+   FAVORITE
+========================= */
+router.get("/favourites", authMiddleware, getFavourites);
+router.post("/favourites/toggle", authMiddleware, toggleFavourite);
 
 export default router;
